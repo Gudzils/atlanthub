@@ -1,32 +1,98 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "Atlanthub",
-    LoadingTitle = "Nizhegorodskiv cheat",
-    LoadingSubtitle = "by Siwkav",
+    Name = "Atlant hub🎊",
+    LoadingTitle = "🎭Dead ralis",
+    LoadingSubtitle = "by @Fiagoo",
     ConfigurationSaving = {
-       Enabled = true,
-       FileName = "Big Hub"
+        Enabled = true,
+        FileName = "Big Hub"
     },
     KeySystem = false,
 })
 
-local PlayerTab = Window:CreateTab("Player", 4483362458)
+local PlayerTab = Window:CreateTab("Set Money", 4483362458) 
 
-local VFlyButton = PlayerTab:CreateButton({
-    Name = "Activate vFly",
-    Callback = function()
-        local vFlyScript = loadstring(game:HttpGet('https://raw.githubusercontent.com/Gudzils/vflybysiwkav/a33695ba9313b1362143a29b422e7acb4ec29619/vfly.raw'))()
-        vFlyScript()
-    end,
+-- Set Money Slider
+PlayerTab:CreateSlider({
+    Name = "🎉Set Money",
+    Range = {1, 9999},
+    Increment = 1,
+    Suffix = "Coins",
+    CurrentValue = 1,
+    Flag = "MoneySlider",
+    Callback = function(value)
+        local player = game.Players.LocalPlayer
+        local playerGui = player:WaitForChild("PlayerGui")
+        local moneyGui = playerGui:FindFirstChild("MoneyGui")
+        if moneyGui then
+            local money = moneyGui:FindFirstChild("Money")
+            if money then
+                money.Text = tostring(value)
+            end
+        end
+    end
 })
 
-local AdminTab = Window:CreateTab("Admin", 4483362458)
-
-local AdminButton = AdminTab:CreateButton({
-    Name = "Admin Infinity",
-    Callback = function()
-        local adminScript = loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
-        adminScript()
-    end,
+-- Set Bond Slider
+PlayerTab:CreateSlider({
+    Name = "💸Set Bond",
+    Range = {1, 9999},
+    Increment = 1,
+    Suffix = "Bonds",
+    CurrentValue = 1,
+    Flag = "BondCountSlider",
+    Callback = function(value)
+        local player = game.Players.LocalPlayer
+        local playerGui = player:WaitForChild("PlayerGui")
+        local bondGui = playerGui:FindFirstChild("BondGui")
+        if bondGui then
+            local bondInfo = bondGui:FindFirstChild("BondInfo")
+            if bondInfo then
+                local bondCount = bondInfo:FindFirstChild("BondCount")
+                if bondCount then
+                    bondCount.Text = tostring(value)
+                end
+            end
+        end
+    end
 })
+
+-- Telegram Link Button
+PlayerTab:CreateButton({
+    Name = "Telegram Link",
+    Callback = function()
+        setclipboard("https://t.me/atlanthub")  -- Copies the link to the clipboard
+    end
+})
+
+-- Anti-Cheat Off Menu
+PlayerTab:CreateToggle({
+    Name = "Off Anti-Cheat",
+    CurrentValue = false,
+    Flag = "AntiCheatToggle",
+    Callback = function(value)
+        if value then
+            -- Disable AntiCheat scripts
+            local player = game.Players.LocalPlayer
+            -- You might need to target specific anti-cheat scripts here, 
+            -- this is an example of removing known anti-cheat scripts
+            local antiFling = game:FindFirstChild("AntiFling")
+            local antiSlide = game:FindFirstChild("AntiSlide")
+            local antiSlideClientTest = game:FindFirstChild("AntiSlideClientTest")
+
+            -- Remove the scripts if they exist
+            if antiFling then
+                antiFling:Destroy()
+            end
+            if antiSlide then
+                antiSlide:Destroy()
+            end
+            if antiSlideClientTest then
+                antiSlideClientTest:Destroy()
+            end
+        end
+    end
+})
+
+Rayfield:Init()
