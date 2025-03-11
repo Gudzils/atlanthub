@@ -11,7 +11,8 @@ local Window = Rayfield:CreateWindow({
     KeySystem = false,
 })
 
-local PlayerTab = Window:CreateTab("Set Money", 4483362458) 
+-- Set Money Tab
+local PlayerTab = Window:CreateTab("Set Money", 4483362458)
 
 -- Set Money Slider
 PlayerTab:CreateSlider({
@@ -66,33 +67,317 @@ PlayerTab:CreateButton({
     end
 })
 
--- Anti-Cheat Off Menu
-PlayerTab:CreateToggle({
-    Name = "Off Anti-Cheat",
+-- Anti-Cheat Tab
+local AntiCheatTab = Window:CreateTab("Off Anti Cheat", 4483362458)
+
+AntiCheatTab:CreateToggle({
+    Name = "Disable Anti-Cheat Scripts",
     CurrentValue = false,
     Flag = "AntiCheatToggle",
     Callback = function(value)
         if value then
-            -- Disable AntiCheat scripts
+            -- Удаляем античит скрипты
             local player = game.Players.LocalPlayer
-            -- You might need to target specific anti-cheat scripts here, 
-            -- this is an example of removing known anti-cheat scripts
-            local antiFling = game:FindFirstChild("AntiFling")
-            local antiSlide = game:FindFirstChild("AntiSlide")
-            local antiSlideClientTest = game:FindFirstChild("AntiSlideClientTest")
 
-            -- Remove the scripts if they exist
-            if antiFling then
-                antiFling:Destroy()
+            -- Пример возможных античит-скриптов, которые могут быть в игре:
+            local antiScripts = {
+                game:FindFirstChild("AntiFling"),
+                game:FindFirstChild("AntiSlide"),
+                game:FindFirstChild("AntiSlideClientTest")
+            }
+
+            -- Перебор скриптов и удаление
+            for _, script in pairs(antiScripts) do
+                if script then
+                    script:Destroy()
+                    print("Anti-Cheat script removed: " .. script.Name)
+                end
             end
-            if antiSlide then
-                antiSlide:Destroy()
+        else
+            -- Логика, если античит скрипты не должны быть удалены
+            print("Anti-Cheat scripts remain disabled.")
+        end
+    end
+})
+
+-- Combat Tab
+local CombatTab = Window:CreateTab("Combat", 4483362458)
+
+-- Регулировка скорости
+CombatTab:CreateSlider({
+    Name = "Walk Speed",
+    Range = {16, 500},
+    Increment = 1,
+    Suffix = "Speed",
+    CurrentValue = 16,
+    Flag = "WalkSpeedSlider",
+    Callback = function(value)
+        local player = game.Players.LocalPlayer
+        if player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = value
             end
-            if antiSlideClientTest then
-                antiSlideClientTest:Destroy()
+        end
+    end
+})
+
+-- Регулировка прыжковой силы
+CombatTab:CreateSlider({
+    Name = "Jump Power",
+    Range = {50, 300},
+    Increment = 1,
+    Suffix = "Jump Power",
+    CurrentValue = 50,
+    Flag = "JumpPowerSlider",
+    Callback = function(value)
+        local player = game.Players.LocalPlayer
+        if player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.JumpPower = value
+            end
+        end
+    end
+})
+
+-- Aimbot Settings
+local teamCheck = false
+local fov = 150  -- Default FOV value
+
+local RunService = game:GetService("RunService")
+
+local FOVring = Drawing.new("Circle")
+FOVring.Visible = true
+FOVring.Thickness = 1.5
+FOVring.Radius = fov
+FOVring.Transparency = 1
+FOVring.Color = Color3.fromRGB(255, 128, 128)
+FOVring.Position = workspace.CurrentCamera.ViewportSize/2
+
+-- Aimbot main loop
+local function getClosest(cframe)
+    local ray = Ray.new(cframe.Position, cframe.LookVector).Unit
+    local target = nil
+    local mag = math.huge
+    
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("Model") and v:FindFirstChild("Head") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v ~= game.Players.LocalPlayer.Character then
+            local magBuf = (v.Head.Position - ray:ClosestPoint(v.Head.Position)).Magnitude
+            if magBuf < mag then
+                mag = magBuf
+                target = v
+            end
+        end
+    end
+    
+    return target
+end
+
+-- FullBright (Always Day)
+CombatTab:CreateButton({
+    Name = "FullBright (Always Day)",
+    Callback = function()
+        game.Lighting.TimeOfDay = "14:00:00" -- Set time to always be day
+        game.Lighting.FogEnd = 100000
+        game.Lighting.Brightness = 2
+        game.Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255) -- Always bright
+    end
+})
+
+-- Aimbot toggle
+CombatTab:CreateToggle({
+    Name = "Enable Aimbot",
+    CurrentValue = false,
+    Flag = "AimbotToggle",
+    Callback = function(value)
+        if value then
+            -- Aimbot activation
+            RunService.RenderStepped:Connect(function()
+                local UserInputService = game:GetService("UserInputService")
+                local pressed = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)  -- Right mouse button to activate Aimbot
+                local localPlayer = game.Players.LocalPlayer
+                local cam = workspace.CurrentCamera
+                local zz = workspace.CurrentCamera.ViewportSize/2
+
+                if pressed then
+                    local curTar = getClosest(cam.CFrame)
+                    if curTar then
+                        local ssHeadPoint = cam:WorldToScreenPoint(curTar.Head.Position)
+                        ssHeadPoint = Vector2.new(ssHeadPoint.X, ssHeadPoint.Y)
+                        if (ssHeadPoint - zz).Magnitude < fov then
+                            cam.CFrame = cam.CFrame:Lerp(CFrame.new(cam.CFrame.Position, curTar.Head.Position), 0.1)
+                        end
+                    end
+                end
+            end)
+        else
+            -- Aimbot deactivation
+            print("Aimbot disabled.")
+        end
+    end
+})
+
+-- Flyv3 (Fly Script)
+CombatTab:CreateButton({
+    Name = "Enable Flyv3",
+    Callback = function()
+        local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/Gudzils/vflybysiwkav/refs/heads/main/vfly.raw'))()
+        Rayfield()
+    end
+})
+
+-- ESP Tab for Models
+local EspTab = Window:CreateTab("ESP", 4483362458)
+
+local espEnabled = false
+local highlights = {}
+local distanceLabels = {}
+
+-- Функция для создания ESP для игроков
+local function AutoSet(player)
+    if player == game.Players.LocalPlayer then return end
+
+    local function AutoSetupCharacter(character)
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart", 10)
+
+        -- Добавление highlight
+        local highlight = Instance.new("Highlight")
+        highlight.Parent = character
+        highlight.Adornee = character
+        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+        highlight.FillTransparency = 0.5
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlight.OutlineTransparency = 0
+        highlights[player] = highlight
+
+        -- Добавление метки с расстоянием
+        local billboard = Instance.new("BillboardGui")
+        billboard.Size = UDim2.new(0, 150, 0, 30)
+        billboard.Adornee = humanoidRootPart
+        billboard.StudsOffset = Vector3.new(0, 2, 0)
+        billboard.AlwaysOnTop = true
+        billboard.Parent = humanoidRootPart
+
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.BackgroundTransparency = 1
+        textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        textLabel.TextScaled = true
+        textLabel.Font = Enum.Font.SourceSansBold
+        textLabel.Text = player.Name  -- Отображение имени игрока
+        textLabel.Parent = billboard
+    end
+
+    if player.Character then
+        AutoSetupCharacter(player.Character)
+    end
+
+    player.CharacterAdded:Connect(function(character)
+        AutoSetupCharacter(character)
+    end)
+end
+
+-- Удаление ESP игроков, когда игрок покидает игру
+game.Players.PlayerRemoving:Connect(function(player)
+    if highlights[player] then
+        highlights[player]:Destroy()
+        highlights[player] = nil
+    end
+end)
+
+-- Применение ESP к существующим игрокам
+for _, player in pairs(game.Players:GetPlayers()) do
+    AutoSet(player)
+end
+
+-- Применение ESP к новым игрокам
+game.Players.PlayerAdded:Connect(AutoSet)
+
+-- ESP toggle для игроков
+EspTab:CreateToggle({
+    Name = "Enable ESP for Players",
+    CurrentValue = false,
+    Flag = "PlayerEspToggle",
+    Callback = function(value)
+        espEnabled = value
+        if espEnabled then
+            -- Включение ESP для игроков
+            for _, player in pairs(game.Players:GetPlayers()) do
+                AutoSet(player)
+            end
+        else
+            -- Отключение ESP для игроков
+            for player, highlight in pairs(highlights) do
+                if highlight then
+                    highlight:Destroy()
+                    highlights[player] = nil
+                end
+            end
+        end
+    end
+})
+
+-- ESP для моделей
+local function AutoSetModel(model)
+    if model == game.Players.LocalPlayer then return end
+    if not model:IsA("Model") then return end  -- Только для моделей
+
+    local function AutoSetupModel(model)
+        -- Добавление highlight
+        local highlight = Instance.new("Highlight")
+        highlight.Parent = model
+        highlight.Adornee = model
+        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+        highlight.FillTransparency = 0.5
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlight.OutlineTransparency = 0
+        highlights[model] = highlight
+    end
+
+    AutoSetupModel(model)
+
+    model.DescendantAdded:Connect(function(child)
+        if child:IsA("Model") then
+            AutoSetupModel(child)
+        end
+    end)
+end
+
+-- Удаление ESP моделей, когда модель исчезает
+game:GetService("RunService").Heartbeat:Connect(function()
+    for _, model in pairs(workspace:GetChildren()) do
+        if model:IsA("Model") and not highlights[model] then
+            AutoSetModel(model)
+        end
+    end
+end)
+
+-- ESP toggle для моделей
+EspTab:CreateToggle({
+    Name = "Enable ESP for Models",
+    CurrentValue = false,
+    Flag = "ModelEspToggle",
+    Callback = function(value)
+        espEnabled = value
+        if espEnabled then
+            -- Включение ESP для моделей
+            for _, model in pairs(workspace:GetChildren()) do
+                if model:IsA("Model") then
+                    AutoSetModel(model)
+                end
+            end
+        else
+            -- Отключение ESP для моделей
+            for model, highlight in pairs(highlights) do
+                if highlight then
+                    highlight:Destroy()
+                    highlights[model] = nil
+                end
             end
         end
     end
 })
 
 Rayfield:Init()
+
